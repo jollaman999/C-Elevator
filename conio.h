@@ -1,3 +1,5 @@
+// http://geezer.osdevbrasil.net/software/kbhit.c
+
 #include <sys/time.h> /* struct timeval, select() */
 /* ICANON, ECHO, TCSANOW, struct termios */
 #include <termios.h> /* tcgetattr(), tcsetattr() */
