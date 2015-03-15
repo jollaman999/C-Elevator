@@ -8,45 +8,40 @@
 #include <stdio.h> /* printf() */
 #include <string.h> /* memcpy() */
 
+static int init = 0;
 static struct termios g_old_kbd_mode;
-/*****************************************************************************
-*****************************************************************************/
+
 static void cooked(void)
 {
 	tcsetattr(0, TCSANOW, &g_old_kbd_mode);
 }
-/*****************************************************************************
-*****************************************************************************/
+
 static void raw(void)
 {
-	static char init;
-/**/
 	struct termios new_kbd_mode;
 
-	if(init)
-		return;
-/* put keyboard (stdin, actually) in raw, unbuffered mode */
+	/* put keyboard (stdin, actually) in raw, unbuffered mode */
 	tcgetattr(0, &g_old_kbd_mode);
 	memcpy(&new_kbd_mode, &g_old_kbd_mode, sizeof(struct termios));
 	new_kbd_mode.c_lflag &= ~(ICANON | ECHO);
 	new_kbd_mode.c_cc[VTIME] = 0;
 	new_kbd_mode.c_cc[VMIN] = 1;
 	tcsetattr(0, TCSANOW, &new_kbd_mode);
-/* when we exit, go back to normal, "cooked" mode */
+	/* when we exit, go back to normal, "cooked" mode */
 	atexit(cooked);
 
 	init = 1;
 }
-/*****************************************************************************
-*****************************************************************************/
+
 static int _kbhit(void)
 {
 	struct timeval timeout;
 	fd_set read_handles;
 	int status;
 
-	raw();
-/* check stdin (fd 0) for activity */
+	if(!init)
+		raw();
+	/* check stdin (fd 0) for activity */
 	FD_ZERO(&read_handles);
 	FD_SET(0, &read_handles);
 	timeout.tv_sec = timeout.tv_usec = 0;
@@ -58,14 +53,13 @@ static int _kbhit(void)
 	}
 	return status;
 }
-/*****************************************************************************
-*****************************************************************************/
+
 static int _getch(void)
 {
 	unsigned char temp;
 
 	raw();
-/* stdin = fd 0 */
+	/* stdin = fd 0 */
 	if(read(0, &temp, 1) != 1)
 		return 0;
 	return temp;
