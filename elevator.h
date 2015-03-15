@@ -168,6 +168,10 @@ void elevator_door_open(void) {
 void elevator_up(void) {
 	int i;
 
+	// 올라가는 방향으로 눌린 버튼이 있는지 확인 후 없으면 함수 종료
+	if (!inside_button_check(cur_floor, ELEVATOR_UP))
+		return;
+
 	// 엘리베이터가 정지해 있을때 열림 버튼에 대한 확인
 	// 아래 for 문이 루프를 돌고 있는동안엔 이곳을 못오기 때문에
 	// 엘리베이터가 정지해 있는 동안에만 입력을 확인함
@@ -200,6 +204,10 @@ void elevator_up(void) {
 // 엘리베이터 내려가기 함수
 void elevator_down(void) {
 	int i;
+
+	// 내려가는 방향으로 눌린 버튼이 있는지 확인 후 없으면 함수 종료
+	if (!inside_button_check(cur_floor, ELEVATOR_DOWN))
+		return;
 
 	// 엘리베이터가 정지해 있을때 열림 버튼에 대한 확인
 	// 아래 for 문이 루프를 돌고 있는동안엔 이곳을 못오기 때문에
