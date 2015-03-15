@@ -9,6 +9,12 @@
 static int power_on = 0;	// 엘리베이터 전원 on/off 체크
 static int cur_floor;		// 현재 층
 
+enum {
+	ELEVATOR_DOWN = 0,
+	ELEVATOR_UP,
+	ELEVATOR_STOPPED,
+};
+
 // 엘리베이터 초기화
 int elevator_power_on(void) {
 	int i;
@@ -76,11 +82,21 @@ void elevator_print_active_buttons(void) {
 }
 
 // 엘리베이터 led 출력 함수
-void elevator_print_led(void) {
+void elevator_print_led(int is_up) {
+	switch (is_up) {
+		case ELEVATOR_DOWN:
+			printf("▼  ");
+			break;
+		case ELEVATOR_UP:
+			printf("▲  ");
+			break;
+		case ELEVATOR_STOPPED:
+			break;
+	}
 	printf("%d\n", cur_floor);
 }
 
-void elevator_print_to_screen(void) {
+void elevator_print_to_screen(int is_up) {
 #ifndef DEBUG_ELEVATOR
 #ifdef LINUX
 		system("clear");
@@ -90,7 +106,7 @@ void elevator_print_to_screen(void) {
 #endif /* DEBUG_ELEVATOR */
 	elevator_print_active_buttons();
 	printf("Current floor : ");
-	elevator_print_led();
+	elevator_print_led(is_up);
 }
 
 // 엘리베이터 문 열기 함수
@@ -99,9 +115,9 @@ void elevator_door_open(void) {
 	int door_delay = 1200 / ELEVATOR_SPEED; // 출입문 작동 지연
 
 	inside.floor_button[cur_floor - 1] = 0;	// 해당 층 수 버튼 초기화
-	elevator_print_to_screen();
+	elevator_print_to_screen(ELEVATOR_STOPPED);
 	inside.open_button = 0;
-	elevator_print_to_screen();
+	elevator_print_to_screen(ELEVATOR_STOPPED);
 	printf("Door Opend!\n");
 	// 출입문 열기 지연
 	wait(door_delay);
@@ -119,7 +135,7 @@ void elevator_door_open(void) {
 		// 열기 버튼이나 현재 층과 같은 버튼 눌리면 출입문 재개방
 		if (inside.open_button || inside.floor_button[cur_floor - 1]) {
 			inside.floor_button[cur_floor - 1] = 0;	// 해당 층 수 버튼 초기화
-			elevator_print_to_screen();
+			elevator_print_to_screen(ELEVATOR_STOPPED);
 			printf("Door Re-opend!\n");
 			inside.open_button = 0;
 			continue;
@@ -127,7 +143,7 @@ void elevator_door_open(void) {
 
 		// 닫기 버튼 눌리면 출입문 닫음
 		if (inside.close_button) {
-			elevator_print_to_screen();
+			elevator_print_to_screen(ELEVATOR_STOPPED);
 			printf("Force Door Closd!\n");
 			inside.close_button = 0;
 			// 출입문 닫기 지연
@@ -138,7 +154,7 @@ void elevator_door_open(void) {
 		// 시간 만료되면 출입문 닫음
 		// ELEVATOR_SPEED 가 1인 경우 3초 후 만료됨
 		if (clock() - timer_start > 3 * CLOCKS_PER_SEC / ELEVATOR_SPEED) {
-			elevator_print_to_screen();
+			elevator_print_to_screen(ELEVATOR_STOPPED);
 			printf("Door Closd!\n");
 			inside.close_button = 0;
 			// 출입문 닫기 지연
@@ -165,15 +181,15 @@ void elevator_up(void) {
 		// 열기/닫기 버튼 비활성화 되지 않는 버그 수정
 		inside.open_button = 0;
 		inside.close_button = 0;
-		elevator_print_to_screen();
+		elevator_print_to_screen(ELEVATOR_UP);
 
 		if (inside.floor_button[i]) {	// 버튼이 눌린 층을 발견하면
-			elevator_door_open();		// 출입문 개방
+			elevator_door_open();	// 출입문 개방
 		}
 
 		// 남은 버튼이 있는지 확인
-		// 올라가는 방향(is_up = 1)으로 더 이상 버튼 없으면 함수 종료
-		if (!inside_button_check(cur_floor, 1))
+		// 올라가는 방향으로 더 이상 버튼 없으면 함수 종료
+		if (!inside_button_check(cur_floor, ELEVATOR_UP))
 			return;
 
 		inside_button_press();	// 버튼 입력 대기 및 엘리베이터 이동 지연
@@ -198,15 +214,15 @@ void elevator_down(void) {
 		// 열기/닫기 버튼 비활성화 되지 않는 버그 수정
 		inside.open_button = 0;
 		inside.close_button = 0;
-		elevator_print_to_screen();
+		elevator_print_to_screen(ELEVATOR_DOWN);
 
 		if (inside.floor_button[i]) {	// 버튼이 눌린 층을 발견하면
-			elevator_door_open();		// 출입문 개방
+			elevator_door_open();	// 출입문 개방
 		}
 
 		// 남은 버튼이 있는지 확인
-		// 내려가는 방향(is_up = 0)으로 더 이상 버튼 없으면 함수 종료
-		if (!inside_button_check(cur_floor, 0))
+		// 내려가는 방향으로 더 이상 버튼 없으면 함수 종료
+		if (!inside_button_check(cur_floor, ELEVATOR_DOWN))
 			return;
 
 		inside_button_press();	// 버튼 입력 대기 및 엘리베이터 이동 지연

@@ -11,6 +11,7 @@ int main(void) {
 	elevator_power_on();
 
 	while (1) {
+		elevator_print_to_screen(ELEVATOR_STOPPED);
 		inside_button_press();	// 버튼 입력 대기
 		elevator_up();
 		elevator_down();

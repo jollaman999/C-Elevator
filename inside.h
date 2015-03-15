@@ -152,7 +152,7 @@ int inside_button_check(int cur_floor, int is_up) {
 			if (inside.floor_button[i])
 				found = 1;
 		}
-	} else {		// 내려가는 방향
+	} else {	// 내려가는 방향
 		for (i = cur_floor - 1; i >= 0; i--) {
 			if (inside.floor_button[i])
 				found = 1;
