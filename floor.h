@@ -14,7 +14,7 @@
 // #define DEBUG_FLOOR
 
 // 건물 층 높이
-#define TOTAL_FLOORS 10
+#define TOTAL_FLOORS 20
 
 // 각 층에 해당되는 기능들
 struct FLOOR {
